@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fonctions d'activation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- 1. TITRE -->
+  <section class="slide title-slide">
+    <canvas class="plot bg-plot" data-fns="sigmoid,tanh,relu,leaky,elu,swish" data-bare="1" data-hover="0"
+            data-w="1280" data-h="720" data-xmin="-9" data-xmax="6" data-ymin="-2.2" data-ymax="4.5"></canvas>
+    <div class="title-content">
+      <div class="kicker">Introduction au Deep Learning</div>
+      <h1>Les fonctions<br><span class="grad">d'activation</span></h1>
+      <p class="subtitle">Pourquoi les réseaux de neurones ont besoin de « courbes » pour apprendre</p>
+      <div class="chips">
+        <span class="chip" style="--c:var(--sigmoid)">Sigmoid</span>
+        <span class="chip" style="--c:var(--tanh)">Tanh</span>
+        <span class="chip" style="--c:var(--relu)">ReLU</span>
+        <span class="chip" style="--c:var(--leaky)">Leaky ReLU</span>
+        <span class="chip" style="--c:var(--elu)">ELU</span>
+        <span class="chip" style="--c:var(--swish)">Swish</span>
+        <span class="chip" style="--c:var(--softmax)">Softmax</span>
+      </div>
+    </div>
+    <div class="hint">Utilisez <kbd>←</kbd> <kbd>→</kbd> pour naviguer · <kbd>F</kbd> plein écran</div>
+  </section>
+
+  <!-- 2. PLAN -->
+  <section class="slide">
+    <div class="kicker">Sommaire</div>
+    <h2>Ce que nous allons voir</h2>
+    <ol class="plan">
+      <li><span>01</span><div><b>Les bases</b><small>Un neurone, comment un réseau apprend</small></div></li>
+      <li><span>02</span><div><b>Pourquoi des fonctions d'activation ?</b><small>Le problème des lignes droites</small></div></li>
+      <li><span>03</span><div><b>Le problème du XOR</b><small>Un exemple simple qu'une droite ne sait pas résoudre</small></div></li>
+      <li><span>04</span><div><b>Les 6 fonctions principales</b><small>Sigmoid, Tanh, ReLU, Leaky ReLU, ELU, Swish</small></div></li>
+      <li><span>05</span><div><b>Le « gradient qui disparaît »</b><small>Pourquoi certains réseaux n'apprennent plus</small></div></li>
+      <li><span>06</span><div><b>Softmax</b><small>Transformer des notes en pourcentages</small></div></li>
+    </ol>
+  </section>
+
+  <!-- 3. NEURONE -->
+  <section class="slide">
+    <div class="kicker">01 · Les bases</div>
+    <h2>Un neurone artificiel, c'est quoi ?</h2>
+    <div class="cols cols-even">
+      <div>
+        <p class="lead">Un petit calculateur qui reçoit des nombres et prend une <b>décision</b>.</p>
+        <div class="example">
+          <div class="ex-title">Exemple : « Est-ce que je vais à la plage ? »</div>
+          <div class="step"><span class="num">1</span><div>Il donne une <b>importance</b> (un <em>poids</em>) à chaque information, puis additionne :
+            <div class="calc">0.5 × ☀️ + 0.4 × 📅 − 1 × 📚 − 0.3 = <b>0.6</b></div></div></div>
+          <div class="step"><span class="num">2</span><div>Il passe ce résultat dans une <b>fonction d'activation</b> qui le transforme en décision :
+            <div class="calc">activation(0.6) = <b>65 %</b> d'envie d'y aller</div></div></div>
+        </div>
+        <p class="note">Le poids négatif (−1) pour 📚 veut dire : « un examen demain me donne <em>moins</em> envie ».</p>
+      </div>
+      <svg class="neuron" viewBox="0 0 520 400">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b98b8"/></marker>
+          <linearGradient id="ng" x1="0" x2="1"><stop offset="0" stop-color="#3b4a72"/><stop offset="1" stop-color="#5b3f78"/></linearGradient>
+        </defs>
+        <g class="edges">
+          <line x1="80" y1="90"  x2="248" y2="182" marker-end="url(#arr)"/>
+          <line x1="80" y1="190" x2="244" y2="190" marker-end="url(#arr)"/>
+          <line x1="80" y1="290" x2="248" y2="198" marker-end="url(#arr)"/>
+          <line x1="300" y1="50" x2="300" y2="132" marker-end="url(#arr)"/>
+          <line x1="352" y1="190" x2="430" y2="190" marker-end="url(#arr)"/>
+        </g>
+        <g class="in">
+          <circle cx="56" cy="90" r="26"/><text x="56" y="98">☀️</text>
+          <circle cx="56" cy="190" r="26"/><text x="56" y="198">📅</text>
+          <circle cx="56" cy="290" r="26"/><text x="56" y="298">📚</text>
+        </g>
+        <g class="incap">
+          <text x="56" y="134">Il fait beau</text>
+          <text x="56" y="234">Week-end</text>
+          <text x="56" y="334">Examen demain</text>
+        </g>
+        <g class="w">
+          <text x="160" y="122">× 0.5</text><text x="160" y="180">× 0.4</text><text x="160" y="268">× −1</text>
+          <text x="340" y="80">− 0.3</text>
+        </g>
+        <circle cx="300" cy="190" r="56" fill="url(#ng)" stroke="#9aa8d0" stroke-width="2"/>
+        <line x1="300" y1="140" x2="300" y2="240" stroke="#9aa8d0" stroke-width="1.5"/>
+        <text class="big" x="274" y="200">Σ</text>
+        <text class="big f" x="326" y="200">f</text>
+        <text class="out" x="476" y="198">65 %</text>
+        <text class="cap" x="292" y="272" style="text-anchor:end">somme</text>
+        <text class="cap f" x="308" y="272" style="text-anchor:start">activation</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 4. APPRENTISSAGE -->
+  <section class="slide">
+    <div class="kicker">01 · Les bases</div>
+    <h2>Comment un réseau apprend-il ?</h2>
+    <div class="cols cols-even">
+      <div>
+        <p class="lead">Apprendre = <b>ajuster les poids</b> petit à petit, en répétant 4 étapes :</p>
+        <div class="loop-steps">
+          <div><span>1</span><b>Il devine</b><small>Le réseau fait une prédiction (« c'est un chat »)</small></div>
+          <div><span>2</span><b>On mesure l'erreur</b><small>On compare avec la bonne réponse (« c'était un chien »)</small></div>
+          <div><span>3</span><b>On calcule le gradient</b><small>Pour chaque poids : dans quel sens le modifier, et de combien ?</small></div>
+          <div><span>4</span><b>On corrige les poids</b><small>Puis on recommence, des milliers de fois</small></div>
+        </div>
+      </div>
+      <div>
+        <div class="analogy">
+          <div class="an-title">🏔️ L'analogie de la montagne</div>
+          <p>Vous êtes perdu dans le brouillard sur une montagne et vous voulez descendre dans la vallée (= <b>l'erreur la plus petite</b>).</p>
+          <p>Vous ne voyez rien, mais vous sentez la <b>pente</b> sous vos pieds. Vous faites un pas vers le bas, puis vous recommencez.</p>
+          <p>Le <b>gradient</b>, c'est cette pente : il indique la direction pour réduire l'erreur.</p>
+        </div>
+        <div class="callout warn">⚠️ Si la pente est <b>plate</b> (gradient ≈ 0), on ne sait plus où aller : le réseau <b>arrête d'apprendre</b>. On y reviendra !</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. SANS ACTIVATION -->
+  <section class="slide">
+    <div class="kicker">02 · Pourquoi des fonctions d'activation ?</div>
+    <h2>Sans activation : que des lignes droites</h2>
+    <div class="cols cols-even">
+      <div>
+        <p class="lead">Sans fonction d'activation, un neurone ne fait que <b>multiplier et additionner</b>. C'est une opération « linéaire » : son graphique est une <b>ligne droite</b>.</p>
+        <div class="example">
+          <div class="ex-title">Empilons 3 couches :</div>
+          <div class="calc">couche 1 : × 2</div>
+          <div class="calc">couche 2 : × 3</div>
+          <div class="calc">couche 3 : × 5</div>
+          <div class="calc result">= une seule couche : × 30</div>
+        </div>
+        <div class="callout warn">Même avec 100 couches, le réseau reste aussi simple qu'<b>une seule</b> couche. Empiler des couches ne sert à rien !</div>
+      </div>
+      <div>
+        <div class="analogy">
+          <div class="an-title">✏️ L'analogie de la règle</div>
+          <p>Avec seulement une <b>règle droite</b>, vous pouvez tracer autant de traits que vous voulez… mais jamais un <b>cercle</b>.</p>
+          <p>La fonction d'activation, c'est la possibilité de <b>plier</b> le trait.</p>
+        </div>
+        <p class="lead" style="margin-top:18px">La fonction d'activation permet au réseau de :</p>
+        <ul class="bullets">
+          <li>apprendre des formes <b>courbes</b> et complexes (visages, voix, textes…)</li>
+          <li>profiter de <b>plusieurs couches</b> : chacune apprend quelque chose de nouveau</li>
+          <li>rester « lisse », pour que le <b>gradient</b> (la pente) puisse être calculé</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. XOR -->
+  <section class="slide">
+    <div class="kicker">03 · Le problème du XOR</div>
+    <h2>Le XOR : « l'un ou l'autre, mais pas les deux »</h2>
+    <div class="cols" style="grid-template-columns: 1fr 420px;">
+      <div>
+        <p class="lead">Exemple : au restaurant, le menu inclut <b>un café OU un dessert</b>, mais pas les deux.</p>
+        <table class="truth">
+          <thead><tr><th>Café ☕</th><th>Dessert 🍰</th><th>Accepté ?</th></tr></thead>
+          <tbody>
+            <tr><td>non (0)</td><td>non (0)</td><td class="c0">non (0)</td></tr>
+            <tr><td>non (0)</td><td>oui (1)</td><td class="c1">oui (1)</td></tr>
+            <tr><td>oui (1)</td><td>non (0)</td><td class="c1">oui (1)</td></tr>
+            <tr><td>oui (1)</td><td>oui (1)</td><td class="c0">non (0)</td></tr>
+          </tbody>
+        </table>
+        <div class="callout">Sur le graphique, les <b style="color:var(--c1)">oui</b> et les <b style="color:var(--c0)">non</b> sont en <b>diagonale</b>. Regardez : la droite essaie, mais <b>aucune droite</b> ne peut séparer les deux couleurs.</div>
+        <p class="note">Un réseau sans fonction d'activation ne trace que des droites : il ne peut donc <b>pas</b> résoudre ce problème pourtant très simple.</p>
+      </div>
+      <div class="xor-box">
+        <svg id="xorSvg" viewBox="0 0 300 300"></svg>
+        <div class="xor-score">Bien classés : <b id="xorScore">–</b> / 4 <span class="muted">· jamais plus de 3 sur 4</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. XOR RÉSOLU -->
+  <section class="slide">
+    <div class="kicker">03 · Le problème du XOR</div>
+    <h2>La solution : ajouter une couche avec activation</h2>
+    <div class="cols" style="grid-template-columns: 1fr 400px;">
+      <div>
+        <p class="lead">On ajoute une <b>couche cachée</b> de 2 neurones (avec l'activation ReLU) :</p>
+        <div class="card-list">
+          <div class="card"><b>Neurone 1 : « Au moins un des deux ? »</b><span>Il compte combien d'options sont choisies (0, 1 ou 2).</span></div>
+          <div class="card"><b>Neurone 2 : « Les deux en même temps ? »</b><span>Il ne s'allume que si café <em>et</em> dessert sont choisis.</span></div>
+          <div class="card"><b>Sortie : « Neurone 1, sauf si neurone 2 »</b><span>Au moins un choisi, mais pas les deux = XOR ✓</span></div>
+        </div>
+        <div class="callout ok">Cliquez sur le bouton : la couche cachée <b>déplace les points</b>. Après, une simple droite suffit pour les séparer !</div>
+      </div>
+      <div class="xor-box">
+        <svg id="hiddenSvg" viewBox="0 0 320 320"></svg>
+        <button class="btn" id="hiddenBtn">Passer par la couche cachée →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. PANORAMA -->
+  <section class="slide">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2>Les fonctions d'activation en un coup d'œil</h2>
+    <div class="cols" style="grid-template-columns: 260px 1fr;">
+      <div class="controls">
+        <p class="note">Cliquez pour afficher / masquer :</p>
+        <button class="toggle on" data-fn="sigmoid" style="--c:var(--sigmoid)">Sigmoid</button>
+        <button class="toggle on" data-fn="tanh" style="--c:var(--tanh)">Tanh</button>
+        <button class="toggle on" data-fn="relu" style="--c:var(--relu)">ReLU</button>
+        <button class="toggle" data-fn="leaky" style="--c:var(--leaky)">Leaky ReLU</button>
+        <button class="toggle" data-fn="elu" style="--c:var(--elu)">ELU</button>
+        <button class="toggle" data-fn="swish" style="--c:var(--swish)">Swish</button>
+        <label class="switch"><input type="checkbox" id="derivToggle"><span></span>Afficher la pente</label>
+        <p class="note">Axe horizontal : ce qui <b>entre</b> dans le neurone.<br>Axe vertical : ce qui <b>sort</b>.<br>Survolez pour lire les valeurs.</p>
+      </div>
+      <canvas class="plot" id="overview" data-fns="sigmoid,tanh,relu" data-w="840" data-h="500"
+              data-xmin="-5" data-xmax="5" data-ymin="-1.5" data-ymax="3.5"></canvas>
+    </div>
+  </section>
+
+  <!-- 9. LIRE UNE FICHE -->
+  <section class="slide">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2>Comment lire les fiches suivantes</h2>
+    <div class="cols cols-even">
+      <div>
+        <p class="lead">Pour chaque fonction, le graphique montre deux courbes :</p>
+        <div class="card-list">
+          <div class="card"><b>━━ Trait plein : la fonction</b><span>Ce que le neurone envoie à la suite, selon ce qu'il reçoit.</span></div>
+          <div class="card"><b>╌╌ Pointillés : la pente (la « dérivée »)</b><span>La force du signal d'apprentissage. C'est le gradient de la montagne !</span></div>
+        </div>
+      </div>
+      <div>
+        <p class="lead">Ce qu'il faut surveiller :</p>
+        <div class="card-list">
+          <div class="card good"><b>✓ Pente bien présente</b><span>Le neurone apprend bien.</span></div>
+          <div class="card bad"><b>✗ Pente proche de 0 (courbe « plate »)</b><span>On dit que la fonction <b>sature</b> : le neurone n'apprend presque plus.</span></div>
+          <div class="card"><b>⚡ Rapidité de calcul</b><span>Un réseau calcule des milliards de fois : une fonction simple fait gagner beaucoup de temps.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. SIGMOID -->
+  <section class="slide fn-slide" style="--c:var(--sigmoid)">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2><i class="dot"></i>Sigmoid</h2>
+    <div class="cols fn-cols">
+      <div>
+        <div class="oneliner"><b>En une phrase :</b> elle écrase n'importe quel nombre entre 0 et 1, comme un pourcentage.</div>
+        <div class="formula">$$\sigma(x) = \frac{1}{1 + e^{-x}}$$</div>
+        <div class="meta">
+          <span><b>Sorties</b> entre 0 et 1</span>
+          <span><b>Exemples</b> −5 → 0.01 · 0 → 0.5 · 5 → 0.99</span>
+        </div>
+        <div class="pc">
+          <div class="pros"><h4>Points forts</h4><ul>
+            <li>Le résultat se lit comme une <b>probabilité</b></li>
+            <li>Courbe douce, facile à comprendre</li>
+          </ul></div>
+          <div class="cons"><h4>Points faibles</h4><ul>
+            <li>Aux extrémités, la courbe devient <b>plate</b> : la pente tombe à 0</li>
+            <li>La pente ne dépasse jamais <b>0.25</b> : le signal d'apprentissage est faible</li>
+            <li>Assez lente à calculer</li>
+          </ul></div>
+        </div>
+        <div class="usage"><b>À utiliser :</b> à la toute fin du réseau pour une question <b>oui / non</b> (spam ou pas spam ?).</div>
+      </div>
+      <canvas class="plot" data-fns="sigmoid" data-deriv="1" data-w="480" data-h="420" data-xmin="-6" data-xmax="6" data-ymin="-0.25" data-ymax="1.25"></canvas>
+    </div>
+  </section>
+
+  <!-- 11. TANH -->
+  <section class="slide fn-slide" style="--c:var(--tanh)">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2><i class="dot"></i>Tanh</h2>
+    <div class="cols fn-cols">
+      <div>
+        <div class="oneliner"><b>En une phrase :</b> comme Sigmoid, mais entre −1 et 1, centrée sur 0.</div>
+        <div class="formula">$$\tanh(x) = \frac{e^{x} - e^{-x}}{e^{x} + e^{-x}}$$</div>
+        <div class="meta">
+          <span><b>Sorties</b> entre −1 et 1</span>
+          <span><b>Exemples</b> −3 → −0.99 · 0 → 0 · 3 → 0.99</span>
+        </div>
+        <div class="pc">
+          <div class="pros"><h4>Points forts</h4><ul>
+            <li>Centrée sur 0 : les sorties positives et négatives s'équilibrent</li>
+            <li>Pente jusqu'à <b>1</b> : 4 fois plus forte que Sigmoid</li>
+          </ul></div>
+          <div class="cons"><h4>Points faibles</h4><ul>
+            <li>Devient aussi <b>plate</b> aux extrémités</li>
+            <li>Le problème d'apprentissage reste présent dans les grands réseaux</li>
+            <li>Assez lente à calculer</li>
+          </ul></div>
+        </div>
+        <div class="usage"><b>À utiliser :</b> dans les réseaux qui traitent des <b>séquences</b> (texte, son), comme les RNN.</div>
+      </div>
+      <canvas class="plot" data-fns="tanh" data-deriv="1" data-w="480" data-h="420" data-xmin="-4" data-xmax="4" data-ymin="-1.5" data-ymax="1.5"></canvas>
+    </div>
+  </section>
+
+  <!-- 12. RELU -->
+  <section class="slide fn-slide" style="--c:var(--relu)">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2><i class="dot"></i>ReLU</h2>
+    <div class="cols fn-cols">
+      <div>
+        <div class="oneliner"><b>En une phrase :</b> si c'est négatif, on met 0 ; sinon, on laisse passer tel quel.</div>
+        <div class="formula">$$\text{ReLU}(x) = \max(0,\, x)$$</div>
+        <div class="meta">
+          <span><b>Sorties</b> 0 ou plus</span>
+          <span><b>Exemples</b> −3 → 0 · 0 → 0 · 2 → 2</span>
+        </div>
+        <div class="pc">
+          <div class="pros"><h4>Points forts</h4><ul>
+            <li><b>Ultra rapide</b> : une simple comparaison</li>
+            <li>Pente = 1 pour les positifs : le signal d'apprentissage <b>ne faiblit pas</b></li>
+            <li>A rendu possibles les très grands réseaux</li>
+          </ul></div>
+          <div class="cons"><h4>Points faibles</h4><ul>
+            <li>Pente = 0 pour les négatifs : un neurone peut rester bloqué à 0 et <b>« mourir »</b> (il n'apprend plus jamais)</li>
+          </ul></div>
+        </div>
+        <div class="usage"><b>À utiliser :</b> c'est le <b>choix par défaut</b> à l'intérieur du réseau. En cas de doute, commencez par elle !</div>
+      </div>
+      <canvas class="plot" data-fns="relu" data-deriv="1" data-w="480" data-h="420" data-xmin="-4" data-xmax="4" data-ymin="-1" data-ymax="4"></canvas>
+    </div>
+  </section>
+
+  <!-- 13. LEAKY RELU -->
+  <section class="slide fn-slide" style="--c:var(--leaky)">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2><i class="dot"></i>Leaky ReLU</h2>
+    <div class="cols fn-cols">
+      <div>
+        <div class="oneliner"><b>En une phrase :</b> comme ReLU, mais on laisse « fuir » un tout petit peu des négatifs.</div>
+        <div class="formula">$$\text{LeakyReLU}(x) = \begin{cases} x & \text{si } x &gt; 0 \\ 0.01 \times x & \text{sinon} \end{cases}$$</div>
+        <div class="meta">
+          <span><b>Sorties</b> tous les nombres</span>
+          <span><b>Exemples</b> −3 → −0.03 · 0 → 0 · 2 → 2</span>
+        </div>
+        <div class="pc">
+          <div class="pros"><h4>Points forts</h4><ul>
+            <li>Plus de neurones « morts » : il reste toujours une <b>petite pente</b></li>
+            <li>Aussi rapide que ReLU</li>
+          </ul></div>
+          <div class="cons"><h4>Points faibles</h4><ul>
+            <li>Il faut choisir la taille de la « fuite »</li>
+            <li>Pas toujours meilleure que ReLU en pratique</li>
+          </ul></div>
+        </div>
+        <div class="usage"><b>À utiliser :</b> quand ReLU donne trop de neurones « morts ».</div>
+      </div>
+      <div class="plot-wrap">
+        <canvas class="plot" data-fns="leaky" data-deriv="1" data-w="480" data-h="400" data-xmin="-4" data-xmax="4" data-ymin="-1" data-ymax="4"></canvas>
+        <small class="muted">La fuite est agrandie (0.1) sur le graphique pour qu'on la voie</small>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. ELU -->
+  <section class="slide fn-slide" style="--c:var(--elu)">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2><i class="dot"></i>ELU</h2>
+    <div class="cols fn-cols">
+      <div>
+        <div class="oneliner"><b>En une phrase :</b> comme ReLU, mais les négatifs descendent en <b>douceur</b> vers −1 au lieu d'être coupés net.</div>
+        <div class="formula">$$\text{ELU}(x) = \begin{cases} x & \text{si } x &gt; 0 \\ e^{x} - 1 & \text{sinon} \end{cases}$$</div>
+        <div class="meta">
+          <span><b>Sorties</b> −1 ou plus</span>
+          <span><b>Exemples</b> −3 → −0.95 · 0 → 0 · 2 → 2</span>
+        </div>
+        <div class="pc">
+          <div class="pros"><h4>Points forts</h4><ul>
+            <li>Courbe <b>douce</b>, sans angle</li>
+            <li>Pas de neurones « morts »</li>
+            <li>Le réseau apprend souvent un peu <b>plus vite</b></li>
+          </ul></div>
+          <div class="cons"><h4>Points faibles</h4><ul>
+            <li>Plus <b>lente</b> à calculer que ReLU (exponentielle)</li>
+          </ul></div>
+        </div>
+        <div class="usage"><b>À utiliser :</b> dans les grands réseaux, quand on veut un apprentissage plus rapide.</div>
+      </div>
+      <canvas class="plot" data-fns="elu" data-deriv="1" data-w="480" data-h="420" data-xmin="-4" data-xmax="4" data-ymin="-1.5" data-ymax="3.5"></canvas>
+    </div>
+  </section>
+
+  <!-- 15. SWISH -->
+  <section class="slide fn-slide" style="--c:var(--swish)">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2><i class="dot"></i>Swish</h2>
+    <div class="cols fn-cols">
+      <div>
+        <div class="oneliner"><b>En une phrase :</b> une version « arrondie » de ReLU, découverte par Google en 2017.</div>
+        <div class="formula">$$\text{Swish}(x) = x \times \sigma(x)$$</div>
+        <div class="meta">
+          <span><b>Sorties</b> environ −0.28 ou plus</span>
+          <span><b>Exemples</b> −3 → −0.14 · 0 → 0 · 2 → 1.76</span>
+        </div>
+        <div class="pc">
+          <div class="pros"><h4>Points forts</h4><ul>
+            <li>Courbe <b>douce</b> partout</li>
+            <li>Souvent un peu <b>meilleure que ReLU</b> dans les très grands réseaux</li>
+          </ul></div>
+          <div class="cons"><h4>Points faibles</h4><ul>
+            <li>Plus <b>lente</b> à calculer</li>
+            <li>Le gain n'est pas garanti</li>
+          </ul></div>
+        </div>
+        <div class="usage"><b>À utiliser :</b> dans les modèles modernes (reconnaissance d'images, IA qui génèrent du texte).</div>
+      </div>
+      <canvas class="plot" data-fns="swish" data-deriv="1" data-w="480" data-h="420" data-xmin="-5" data-xmax="4" data-ymin="-1" data-ymax="4"></canvas>
+    </div>
+  </section>
+
+  <!-- 16. COMPARAISON -->
+  <section class="slide">
+    <div class="kicker">04 · Les 6 fonctions principales</div>
+    <h2>Le tableau récapitulatif</h2>
+    <table class="compare">
+      <thead>
+        <tr><th>Fonction</th><th>Sorties</th><th>Devient plate ?</th><th>Neurones « morts » ?</th><th>Rapidité</th><th>Quand l'utiliser</th></tr>
+      </thead>
+      <tbody>
+        <tr style="--c:var(--sigmoid)"><td><i class="dot"></i>Sigmoid</td><td>0 à 1</td><td class="no">Oui, des 2 côtés</td><td class="yes">Non</td><td class="mid">Lente</td><td>Sortie oui / non</td></tr>
+        <tr style="--c:var(--tanh)"><td><i class="dot"></i>Tanh</td><td>−1 à 1</td><td class="no">Oui, des 2 côtés</td><td class="yes">Non</td><td class="mid">Lente</td><td>Texte, son (RNN)</td></tr>
+        <tr style="--c:var(--relu)"><td><i class="dot"></i>ReLU</td><td>0 ou plus</td><td class="mid">Seulement à gauche</td><td class="no">Oui</td><td class="yes">Très rapide</td><td><b>Par défaut</b></td></tr>
+        <tr style="--c:var(--leaky)"><td><i class="dot"></i>Leaky ReLU</td><td>Tout</td><td class="yes">Non</td><td class="yes">Non</td><td class="yes">Très rapide</td><td>Si ReLU « meurt »</td></tr>
+        <tr style="--c:var(--elu)"><td><i class="dot"></i>ELU</td><td>−1 ou plus</td><td class="mid">Un peu, à gauche</td><td class="yes">Non</td><td class="mid">Moyenne</td><td>Grands réseaux</td></tr>
+        <tr style="--c:var(--swish)"><td><i class="dot"></i>Swish</td><td>−0.28 ou plus</td><td class="mid">Un peu, à gauche</td><td class="yes">Non</td><td class="mid">Moyenne</td><td>Modèles modernes</td></tr>
+      </tbody>
+    </table>
+    <p class="note center">L'histoire en une ligne : <b>Sigmoid → Tanh → ReLU → versions améliorées</b> (Leaky ReLU, ELU, Swish)</p>
+  </section>
+
+  <!-- 17. VANISHING GRADIENT -->
+  <section class="slide">
+    <div class="kicker">05 · Le gradient qui disparaît</div>
+    <h2>Le « gradient qui disparaît »</h2>
+    <div class="cols" style="grid-template-columns: 430px 1fr;">
+      <div>
+        <div class="analogy">
+          <div class="an-title">📞 Le jeu du téléphone arabe</div>
+          <p>Un message passe de personne en personne. À chaque fois, on le répète <b>4 fois moins fort</b>. Au bout de 10 personnes, on n'entend plus rien.</p>
+        </div>
+        <p>Pendant l'apprentissage, la correction part de la <b>fin</b> du réseau et remonte couche par couche. À chaque couche, elle est multipliée par la <b>pente</b> de la fonction d'activation.</p>
+        <div class="calc big">Sigmoid : 0.25 × 0.25 × 0.25 × … ≈ 0</div>
+        <div class="callout warn">Les <b>premières couches</b> ne reçoivent presque plus rien : elles <b>n'apprennent plus</b>.</div>
+      </div>
+      <div class="vg">
+        <div class="vg-controls">
+          <div class="seg" id="vgSeg">
+            <button data-act="sigmoid" class="on" style="--c:var(--sigmoid)">Sigmoid</button>
+            <button data-act="tanh" style="--c:var(--tanh)">Tanh</button>
+            <button data-act="relu" style="--c:var(--relu)">ReLU</button>
+          </div>
+          <label class="range"><span>Nombre de couches : <b id="vgDepthLbl">10</b></span>
+            <input type="range" id="vgDepth" min="2" max="20" value="10"></label>
+        </div>
+        <canvas id="vgCanvas" width="620" height="330"></canvas>
+        <div class="vg-readout">Signal reçu par la 1<sup>re</sup> couche : <b id="vgOut">–</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18. SOLUTIONS -->
+  <section class="slide">
+    <div class="kicker">05 · Le gradient qui disparaît</div>
+    <h2>Comment éviter ce problème ?</h2>
+    <div class="cols cols-even">
+      <div>
+        <h3>D'où vient le problème ?</h3>
+        <ul class="bullets">
+          <li>Des fonctions qui deviennent <b>plates</b> (Sigmoid, Tanh) : leur pente est petite</li>
+          <li>Des réseaux avec <b>beaucoup de couches</b> : on multiplie beaucoup de petits nombres</li>
+        </ul>
+        <h3>Comment le reconnaître ?</h3>
+        <ul class="bullets">
+          <li>L'erreur du réseau <b>ne baisse plus</b>, même après longtemps</li>
+          <li>Les premières couches ne changent presque pas</li>
+        </ul>
+        <div class="callout">Le problème inverse existe aussi : un signal qui <b>grossit</b> trop à chaque couche (le gradient qui « explose »).</div>
+      </div>
+      <div class="sol-grid">
+        <div class="sol"><b>1. Utiliser ReLU</b><span>Sa pente vaut 1 : le signal passe sans faiblir. C'est la solution la plus simple.</span></div>
+        <div class="sol"><b>2. Bien choisir les poids de départ</b><span>Des poids ni trop grands ni trop petits au début de l'apprentissage.</span></div>
+        <div class="sol"><b>3. Normaliser les valeurs</b><span>Remettre les nombres à une échelle raisonnable entre les couches, loin des zones plates.</span></div>
+        <div class="sol"><b>4. Ajouter des raccourcis</b><span>Des connexions qui sautent des couches : le signal prend « l'autoroute ».</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19. SOFTMAX -->
+  <section class="slide">
+    <div class="kicker">06 · Softmax</div>
+    <h2>Softmax : des notes aux pourcentages</h2>
+    <div class="cols" style="grid-template-columns: 430px 1fr;">
+      <div>
+        <p class="lead">Pour reconnaître un animal parmi plusieurs, le réseau donne d'abord une <b>note</b> à chaque animal.</p>
+        <p>Mais une note comme « 2.0 » ne veut pas dire grand-chose. <b>Softmax</b> transforme ces notes en <b>pourcentages</b> :</p>
+        <ul class="bullets">
+          <li>Chaque pourcentage est entre <b>0 et 100 %</b></li>
+          <li>Le total fait toujours <b>100 %</b></li>
+          <li>La meilleure note garde le plus grand pourcentage</li>
+        </ul>
+        <div class="analogy small">
+          <div class="an-title">🗳️ Comme une élection</div>
+          <p>Chaque candidat obtient une part des votes, et toutes les parts ensemble font 100 %.</p>
+        </div>
+      </div>
+      <div class="sm">
+        <p class="note">Bougez les curseurs pour changer les notes du réseau :</p>
+        <div id="smRows"></div>
+        <div class="sm-sum">Total : <b id="smSum">100 %</b> · Le réseau pense que c'est : <b id="smPred">–</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 20. SOFTMAX CALCUL -->
+  <section class="slide">
+    <div class="kicker">06 · Softmax</div>
+    <h2>Softmax pas à pas</h2>
+    <div class="cols cols-even">
+      <div>
+        <table class="truth steps-table">
+          <thead><tr><th>Animal</th><th>Note</th><th>① e<sup>note</sup></th><th>② ÷ total</th></tr></thead>
+          <tbody>
+            <tr><td>🐱 Chat</td><td>2.0</td><td>7.39</td><td class="c1">66 %</td></tr>
+            <tr><td>🐶 Chien</td><td>1.0</td><td>2.72</td><td class="c1">24 %</td></tr>
+            <tr><td>🐦 Oiseau</td><td>0.1</td><td>1.11</td><td class="c1">10 %</td></tr>
+            <tr class="total"><td>Total</td><td></td><td>11.22</td><td>100 %</td></tr>
+          </tbody>
+        </table>
+        <div class="card-list">
+          <div class="card"><b>① L'exponentielle</b><span>Rend toutes les notes positives et agrandit les écarts entre elles.</span></div>
+          <div class="card"><b>② La division par le total</b><span>Transforme le tout en pourcentages qui font 100 %.</span></div>
+        </div>
+        <div class="formula">$$\text{softmax}(\text{note}_i) = \frac{e^{\text{note}_i}}{\text{somme de tous les } e^{\text{note}}}$$</div>
+      </div>
+      <div>
+        <h3>Sigmoid ou Softmax en sortie ?</h3>
+        <div class="vs">
+          <div class="vs-card" style="--c:var(--sigmoid)">
+            <b>Sigmoid</b>
+            <span>Une question <b>oui / non</b></span>
+            <small>« Cet e-mail est-il un spam ? » → 92 %</small>
+          </div>
+          <div class="vs-card" style="--c:var(--softmax)">
+            <b>Softmax</b>
+            <span>Choisir <b>une seule réponse</b> parmi plusieurs</span>
+            <small>« Quel chiffre est écrit : 0, 1, 2… ou 9 ? » → 10 pourcentages qui font 100 %</small>
+          </div>
+        </div>
+        <p class="note">Softmax se place toujours sur la <b>dernière couche</b> du réseau.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 21. CHOISIR -->
+  <section class="slide">
+    <div class="kicker">Synthèse</div>
+    <h2>Quelle fonction choisir ?</h2>
+    <div class="choose">
+      <div class="ch-group">
+        <h3>À l'intérieur du réseau</h3>
+        <div class="ch" style="--c:var(--relu)"><span>Pour commencer</span><b>ReLU</b></div>
+        <div class="ch" style="--c:var(--leaky)"><span>Trop de neurones « morts »</span><b>Leaky ReLU / ELU</b></div>
+        <div class="ch" style="--c:var(--swish)"><span>Très grands modèles modernes</span><b>Swish</b></div>
+        <div class="ch" style="--c:var(--tanh)"><span>Texte ou son (RNN)</span><b>Tanh</b></div>
+      </div>
+      <div class="ch-group">
+        <h3>À la sortie du réseau</h3>
+        <div class="ch" style="--c:var(--sigmoid)"><span>Question oui / non</span><b>Sigmoid</b></div>
+        <div class="ch" style="--c:var(--softmax)"><span>Une réponse parmi plusieurs</span><b>Softmax</b></div>
+        <div class="ch" style="--c:#9aa8c7"><span>Prédire un nombre (un prix…)</span><b>Aucune</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 22. GLOSSAIRE -->
+  <section class="slide">
+    <div class="kicker">Mémo</div>
+    <h2>Petit glossaire</h2>
+    <div class="glossary">
+      <div><b>Neurone</b><span>Petit calculateur : il additionne ses entrées puis applique une activation.</span></div>
+      <div><b>Poids</b><span>L'importance donnée à chaque entrée. C'est ce que le réseau apprend.</span></div>
+      <div><b>Couche cachée</b><span>Une couche de neurones entre l'entrée et la sortie.</span></div>
+      <div><b>Fonction d'activation</b><span>Ce qui « plie » le calcul du neurone pour éviter les lignes droites.</span></div>
+      <div><b>Linéaire</b><span>Dont le graphique est une ligne droite.</span></div>
+      <div><b>Gradient</b><span>La pente : indique comment corriger chaque poids pour réduire l'erreur.</span></div>
+      <div><b>Dérivée</b><span>La pente d'une courbe en un point.</span></div>
+      <div><b>Saturer</b><span>Quand une courbe devient plate : la pente est presque 0.</span></div>
+      <div><b>Neurone « mort »</b><span>Un neurone ReLU bloqué à 0 qui n'apprend plus.</span></div>
+      <div><b>Softmax</b><span>Transforme des notes en pourcentages qui font 100 %.</span></div>
+    </div>
+  </section>
+
+  <!-- 23. CONCLUSION -->
+  <section class="slide">
+    <div class="kicker">Conclusion</div>
+    <h2>À retenir</h2>
+    <div class="takeaways">
+      <div><span>1</span><p>Sans fonction d'activation, un réseau ne trace que des <b>lignes droites</b>. Il ne sait même pas résoudre le <b>XOR</b>.</p></div>
+      <div><span>2</span><p>Les fonctions qui deviennent <b>plates</b> (Sigmoid, Tanh) affaiblissent l'apprentissage : c'est le <b>gradient qui disparaît</b>.</p></div>
+      <div><span>3</span><p><b>ReLU</b> est simple, rapide et efficace : c'est le choix par défaut. Ses variantes corrigent ses petits défauts.</p></div>
+      <div><span>4</span><p><b>Softmax</b> transforme les notes finales en pourcentages pour choisir parmi plusieurs réponses.</p></div>
+    </div>
+    <div class="thanks">Merci ! <span>Des questions ?</span></div>
+  </section>
+
+</div>
+
+<div class="hud">
+  <div class="progress"><div id="progressBar"></div></div>
+  <button class="nav" id="prevBtn" aria-label="Précédent">‹</button>
+  <span id="counter">1 / 23</span>
+  <button class="nav" id="nextBtn" aria-label="Suivant">›</button>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script defer src="script.js"></script>
+</body>
+</html>
