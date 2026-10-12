@@ -208,17 +208,42 @@ h1 { font-size: 92px; line-height: 1; margin: 14px 0 22px; }
   display: grid; place-items: center; font-size: 15px; margin-top: 2px;
 }
 .step > div { flex: 1; font-size: 17px; }
-.neuron { width: 100%; margin-top: 10px; }
+.neuron-compare { gap: 28px; margin-top: 4px; }
+.nc-panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 18px 8px;
+}
+.nc-panel figcaption { font-family: var(--head); font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.nc-panel svg { width: 100%; display: block; }
+.nc-panel text { fill: var(--text); text-anchor: middle; font-family: var(--body); }
+
+.bio .sig line { stroke: #8b98b8; stroke-width: 2; }
+.bio .body path, .bio .axon { stroke: var(--elu); stroke-width: 6; stroke-linecap: round; fill: none; }
+.bio .soma { fill: var(--elu); opacity: .85; }
+.bio .nucleus { fill: #3b4a72; }
+.bio .myelin rect { fill: #9aa3b8; }
+.bio .lbl text { font-size: 15px; }
+.bio .lbl .sub { font-size: 12px; fill: var(--muted); font-family: var(--mono); }
+
 .neuron .edges line { stroke: #8b98b8; stroke-width: 2; }
-.neuron .in circle { fill: var(--panel); stroke: var(--c0); stroke-width: 2; }
-.neuron text { fill: var(--text); text-anchor: middle; font-family: var(--body); font-size: 22px; }
-.neuron .incap text { font-size: 13px; fill: var(--muted); }
-.neuron .w text { fill: var(--tanh); font-size: 16px; font-family: var(--mono); }
+.neuron .in circle { fill: var(--bg2); stroke: var(--c0); stroke-width: 2; }
+.neuron .in text { font-size: 20px; font-family: var(--mono); }
+.neuron .in .dots { font-size: 22px; fill: var(--muted); }
+.neuron .w text { fill: var(--tanh); font-size: 17px; font-family: var(--mono); }
+.neuron .sum { fill: #3b4a72; stroke: #9aa8d0; stroke-width: 2; }
+.neuron .act { fill: color-mix(in srgb, var(--swish) 18%, var(--bg2)); stroke: var(--swish); stroke-width: 2; }
 .neuron .big { font-size: 34px; font-weight: 600; }
 .neuron .f { fill: var(--swish); font-style: italic; }
-.neuron .out { font-size: 24px; font-weight: 600; fill: var(--relu); }
-.neuron .cap { font-size: 13px; fill: var(--muted); font-family: var(--mono); }
-.neuron .cap.f { fill: var(--swish); font-style: normal; }
+.neuron .out { font-size: 28px; font-weight: 600; fill: var(--relu); }
+.neuron .incap text { font-size: 13px; fill: var(--muted); font-family: var(--mono); }
+.neuron .incap .fcap { fill: var(--swish); }
+
+.nc-map { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }
+.nc-map span {
+  font-size: 15px; color: var(--muted); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
+}
+.nc-map b { color: var(--text); font-weight: 600; }
 
 /* ---------- Cards ---------- */
 .card-list { display: grid; gap: 12px; margin-bottom: 12px; }
