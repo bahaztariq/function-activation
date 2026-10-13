@@ -161,27 +161,7 @@
     </div>
   </section>
 
-  <!-- 6. PANORAMA -->
-  <section class="slide">
-    <div class="kicker">02 · Les fonctions principales</div>
-    <h2>Les fonctions d'activation en un coup d'œil</h2>
-    <div class="cols" style="grid-template-columns: 260px 1fr;">
-      <div class="controls">
-        <p class="note">Cliquez pour afficher / masquer :</p>
-        <button class="toggle on" data-fn="sigmoid" style="--c:var(--sigmoid)">Sigmoid</button>
-        <button class="toggle on" data-fn="tanh" style="--c:var(--tanh)">Tanh</button>
-        <button class="toggle on" data-fn="relu" style="--c:var(--relu)">ReLU</button>
-        <button class="toggle" data-fn="leaky" style="--c:var(--leaky)">Leaky ReLU</button>
-        <button class="toggle" data-fn="elu" style="--c:var(--elu)">ELU</button>
-        <button class="toggle" data-fn="swish" style="--c:var(--swish)">Swish</button>
-        <label class="switch"><input type="checkbox" id="derivToggle"><span></span>Afficher la pente</label>
-        <p class="note">La <b>pente</b> = la force de l'apprentissage. Si elle tombe à <b>0</b>, le neurone <b>n'apprend plus</b>.</p>
-      </div>
-      <canvas class="plot" id="overview" data-fns="sigmoid,tanh,relu" data-w="840" data-h="500"
-              data-xmin="-5" data-xmax="5" data-ymin="-1.5" data-ymax="3.5"></canvas>
-    </div>
-  </section>
-
+  
   <!-- 7. SIGMOID -->
   <section class="slide fn-slide" style="--c:var(--sigmoid)">
     <div class="kicker">02 · Les fonctions principales</div>
@@ -205,7 +185,7 @@
       <canvas class="plot" data-fns="sigmoid" data-deriv="1" data-w="480" data-h="420" data-xmin="-6" data-xmax="6" data-ymin="-0.25" data-ymax="1.25"></canvas>
     </div>
   </section>
-
+  
   <!-- 8. TANH -->
   <section class="slide fn-slide" style="--c:var(--tanh)">
     <div class="kicker">02 · Les fonctions principales</div>
@@ -229,6 +209,7 @@
       <canvas class="plot" data-fns="tanh" data-deriv="1" data-w="480" data-h="420" data-xmin="-4" data-xmax="4" data-ymin="-1.5" data-ymax="1.5"></canvas>
     </div>
   </section>
+  
 
   <!-- 9. RELU -->
   <section class="slide fn-slide" style="--c:var(--relu)">
@@ -268,6 +249,26 @@
         <p class="note">Contrepartie : ELU et Swish sont plus <b>lentes</b> à calculer, et le gain n'est pas garanti.</p>
       </div>
       <canvas class="plot" data-fns="relu,leaky,elu,swish" data-w="480" data-h="420" data-xmin="-4" data-xmax="3" data-ymin="-1.5" data-ymax="3"></canvas>
+    </div>
+  </section>
+    <!-- 6. PANORAMA -->
+  <section class="slide">
+    <div class="kicker">02 · Les fonctions principales</div>
+    <h2>Les fonctions d'activation en un coup d'œil</h2>
+    <div class="cols" style="grid-template-columns: 260px 1fr;">
+      <div class="controls">
+        <p class="note">Cliquez pour afficher / masquer :</p>
+        <button class="toggle on" data-fn="sigmoid" style="--c:var(--sigmoid)">Sigmoid</button>
+        <button class="toggle on" data-fn="tanh" style="--c:var(--tanh)">Tanh</button>
+        <button class="toggle on" data-fn="relu" style="--c:var(--relu)">ReLU</button>
+        <button class="toggle" data-fn="leaky" style="--c:var(--leaky)">Leaky ReLU</button>
+        <button class="toggle" data-fn="elu" style="--c:var(--elu)">ELU</button>
+        <button class="toggle" data-fn="swish" style="--c:var(--swish)">Swish</button>
+        <label class="switch"><input type="checkbox" id="derivToggle"><span></span>Afficher la pente</label>
+        <p class="note">La <b>pente</b> = la force de l'apprentissage. Si elle tombe à <b>0</b>, le neurone <b>n'apprend plus</b>.</p>
+      </div>
+      <canvas class="plot" id="overview" data-fns="sigmoid,tanh,relu" data-w="840" data-h="500"
+              data-xmin="-5" data-xmax="5" data-ymin="-1.5" data-ymax="3.5"></canvas>
     </div>
   </section>
 
